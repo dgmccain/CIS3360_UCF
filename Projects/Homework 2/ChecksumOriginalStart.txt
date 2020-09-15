@@ -1,0 +1,120 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <sstream>
+
+using namespace std;
+
+int getData(string &fileTxt, vector<char> newFileTxt, int sizeMessage, int bitInput);
+void outputData(int sizeMessage, vector<char> newFileTxt);
+
+int main(int argc, char* argv[])
+{
+	//variables with file data for manipulation...
+	string tempString;
+	string fileTxt;  //will contain original plaintext...
+	vector<char> newFileTxt;  //will contain file chars for conversion to bits...
+	int sizeMessage;
+
+	//checksum...
+	string checksum = "modify this later...";
+
+	//get input from arg[2]...
+	char bitInput = (char)argv[2];
+
+	//file...
+	ifstream file1;
+
+	//open files...
+	if (argc > 2)
+	{
+		//argument 1...
+		file1.open(argv[1]);
+		if (!file1.is_open())  //check if file is not open for troubleshooting...
+		{
+			cout << "ERROR - could not open file 1..." << endl << endl;
+		}
+		else
+		{
+			while (file1.good())  //copy file data to string...
+			{
+				getline(file1, tempString);
+				fileTxt += tempString;
+				fileTxt += "\n";
+			}
+		}
+		file1.close();  //finished with encryption key file...
+
+		//argument 2...
+		switch (bitInput)  //switch case for if argv[2] == 8, 16, 32 bits...
+		{
+		case 8:
+			cout << "8 bits..." << endl;
+			break;
+		case 16:
+			cout << "16 bits..." << endl;
+			break;
+		case 32:
+			cout << "32 bits..." << endl;
+			break;
+		default:
+			cerr << "ERROR - not 8, 16, or 32 bits" << endl;  //error message...
+		}
+	}
+
+	//get data...
+	sizeMessage = getData(fileTxt, newFileTxt, sizeMessage, bitInput);
+
+	//resize vector...
+	newFileTxt.resize(sizeMessage);  //resize vector to file text length...
+
+	//convert to chars to bits...
+	//convertCharToBit();
+
+	//find checksum...
+	//findChecksum();
+
+	//output...
+	outputData(sizeMessage, newFileTxt, checksum);
+
+	return 0;
+}
+
+int getData(string &fileTxt, vector<char> newFileTxt, int sizeMessage, int bitInput)
+{
+	sizeMessage = fileTxt.length();
+	newFileTxt.resize(sizeMessage);  //resize vector to file text length...
+
+									 //transfer file text string to vector...
+	for (int i = 0; i < sizeMessage; i++)
+	{
+		newFileTxt.at(i) = fileTxt.at(i);
+	}
+
+	//pad with X...
+	if (sizeMessage % bitInput != 0)  //sizeMatrix used to determine matrix size for encryption...
+	{
+		do
+		{
+			newFileTxt.push_back(1);  //add element...
+			sizeMessage++;  //update size...
+			newFileTxt.back() = 'X';  //set last element to x...
+		} while (sizeMessage % bitInput != 0);  //loop until vector with new plaintext has been correctly padded...
+	}
+
+	return sizeMessage;
+}
+
+void outputData(int sizeMessage, vector<char> newFileTxt, string checksum)
+{
+	//output file text...
+	cout << endl;
+	for (int i = 0; i < sizeMessage; i++)
+	{
+		cout << newFileTxt.at(i);
+	}
+	cout << endl;
+	//output checksum...
+	cout << endl << checksum << endl << endl;
+}

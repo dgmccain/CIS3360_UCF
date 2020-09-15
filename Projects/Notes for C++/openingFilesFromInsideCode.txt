@@ -1,0 +1,28 @@
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+
+int main(int argc, char* argv[])
+{
+	ifstream file;
+	file.open("exampleFile.txt");
+	if(!file.is_open())
+	{
+		cout << "error when opening file";
+	}
+	else
+	{
+		cout << "reading from file..." << endl;
+		string line;
+		while(file.good())
+		{
+			getline(file, line);
+			cout << line << endl;
+		}
+	}
+	file.close();
+	cout << "args = " << argc << endl;
+
+	return 0;
+}

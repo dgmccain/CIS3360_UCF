@@ -1,0 +1,217 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <cstdio>
+#include <bitset>
+
+using namespace std;
+
+int getData(string &fileTxt, vector<char> &newFileTxt, int sizeMessage, int numBits)
+{
+	sizeMessage = fileTxt.length();
+	newFileTxt.resize(sizeMessage);  //resize vector to file text length...
+
+	//transfer file text string to vector...
+	for (int i = 0; i < sizeMessage; i++)
+	{
+		newFileTxt.at(i) = fileTxt.at(i);
+	}
+
+	//pad with X...
+	switch (numBits)
+	{
+	case 8:
+		//no padding for 8 bits...
+		break;
+	case 16:
+		if (sizeMessage % 2 != 0)  //16 bit checksums use 2 bits at a time...
+		{
+			do
+			{
+				newFileTxt.push_back(1);  //add element...
+				sizeMessage++;  //update size...
+				newFileTxt.back() = 'X';  //set last element to x...
+			} while (sizeMessage % 2 != 0);  //loop until vector with new plaintext has been correctly padded...
+		}
+	case 32:
+		if (sizeMessage % 4 != 0)  //32 bit checksums use 4 bits at a time...
+		{
+			do
+			{
+				newFileTxt.push_back(1);  //add element...
+				sizeMessage++;  //update size...
+				newFileTxt.back() = 'X';  //set last element to x...
+			} while (sizeMessage % 4 != 0);  //loop until vector with new plaintext has been correctly padded...
+		}
+	}
+
+	return sizeMessage;
+}
+
+int convertCharToBit()
+{
+	return 0;
+}
+
+int findChecksum(int checksum, vector<char> &newFileTxt, int sizeMessage, int numBits)
+{
+	stringstream ss;
+	int a, b;
+	switch (numBits)
+	{
+	case 8:
+		for (int i = 0; i < sizeMessage; i++)
+		{
+			ss << hex << (int)newFileTxt.at(i);
+			string res(ss.str());
+			ss.str(string());  //clear stringstream for next value...
+			/*
+			a = (int)checksum;
+			b = (int)res;
+			ss << hex << a + b;
+			*/
+			ss.str(string());  //clear stringstream for next value...
+			//checksum = checksum + (string)ss;
+			checksum += res;
+		}
+		//need to flip checksum sign and add 1 to fulfill 2's compliment...
+		break;
+	case 16:
+		for (int i = 0; i < sizeMessage; i++)
+		{
+			ss << hex << (int)newFileTxt.at(i);  //first 8 bits...
+			ss << hex << (int)newFileTxt.at(i + 1);  //second 8 bits...
+			string res(ss.str());
+			ss.str(string());  //clear stringstream for next value...
+			checksum += res;  //review for errors...
+			i++;  //i needs to increment because of the additional second set of bits...
+		}
+		break;
+	case 32:
+		/*
+		for (int i = 0; i < sizeMessage; i++)
+		{
+			ss << hex << (int)newFileTxt.at(i);  //first 8 bits...
+			ss << hex << (int)newFileTxt.at(i + 1);  //second 8 bits...
+			ss << hex << (int)newFileTxt.at(i + 2);  //third 8 bits...
+			ss << hex << (int)newFileTxt.at(i + 3);  //fourth 8 bits...
+			string res(ss.str());
+			ss.str(string());  //clear stringstream for next value...
+			ss << hex << (int)checksum + (int)res;
+			i++;  //i needs to increment for each set of bits...
+			i++;
+			i++;
+		}
+		*/
+		break;
+	default:
+		cout << "ERROR - something went wrong when determining number of bits for checksum...";
+	}
+	return 0;
+}
+
+int outputData(int sizeMessage, vector<char> newFileTxt, int checksum, int numBits)
+{
+	//output file text...
+	for (int i = 0; i < sizeMessage; i++)
+	{
+		if (i % 80 == 0)
+		{
+			cout << endl;
+		}
+		cout << newFileTxt.at(i);
+	}
+	//output checksum...
+	cout << endl;
+	printf("%2d bit checksum is %8lx for all %4d chars\n", numBits, checksum, sizeMessage);
+	cout << endl;
+
+	return 0;
+}
+
+int main(int argc, char* argv[])
+{
+	//variables with file data for manipulation...
+	string tempString;
+	string fileTxt;  //will contain original plaintext...
+	vector<char> newFileTxt;  //will contain file string in char format...
+	int sizeMessage = 0;
+
+	//checksum...
+	int checksum = 0;  //change from string to int...
+
+	//get input from arg[2]...
+	string bitInput = argv[2];
+	int numBits = 0;
+
+	//file...
+	ifstream file1;
+
+	//flag
+	bool flag = false;
+
+	//open files...
+	if (argc > 2)
+	{
+		//argument 1...
+		file1.open(argv[1]);
+		if (!file1.is_open())  //check if file is not open for troubleshooting...
+		{
+			cout << "ERROR - could not open file 1..." << endl << endl;
+		}
+		else
+		{
+			while (file1.good())  //copy file data to string...
+			{
+				getline(file1, tempString);
+				fileTxt += tempString;
+			}
+			fileTxt += '\n';  //NEWLINE added to file text before padding...
+		}
+		file1.close();  //finished with encryption key file...
+
+		//argument 2...
+		//use a switch case if argv[2] int/char casting issues can be solved...
+		if (bitInput == "8")
+		{
+			numBits = 8;
+		}
+		else if (bitInput == "16")
+		{
+			numBits = 16;
+		}
+		else if (bitInput == "32")
+		{
+			numBits = 32;
+		}
+		else
+		{
+			cerr << "Valid checksum sizes are 8, 16, or 32" << endl;  //error message...
+			flag = true;
+		}
+	}
+
+	if (flag == false)
+	{
+	//get data...
+	sizeMessage = getData(fileTxt, newFileTxt, sizeMessage, numBits);
+
+	//resize vector...
+	newFileTxt.resize(sizeMessage);  //resize vector to file text length...
+
+	//convert vector chars to bits...
+	convertCharToBit();
+
+	//find checksum...
+	findChecksum(checksum, newFileTxt, sizeMessage, numBits);
+
+	//output...
+	outputData(sizeMessage, newFileTxt, checksum, numBits);
+	}
+
+	system("pause");
+
+	return 0;
+}

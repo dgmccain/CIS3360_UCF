@@ -1,0 +1,63 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <sstream>
+
+using namespace std;
+
+int main(int argc, char* argv[])
+{
+	ifstream inputPTextFile;
+	string tempString;
+	string fileString;
+	ifstream inputEncKeyFile;
+	string tempString2;
+	string fileString2;
+
+	if (argc > 2)
+	{
+		//argument 1...
+		inputPTextFile.open(argv[1]);  //open plaintext file...
+		if (!inputPTextFile.is_open())
+		{
+			cout << "ERROR - could not open file..." << endl << endl;
+		}
+		else
+		{
+			while (inputPTextFile.good())
+			{
+				//getline() will save file strings a line at a time, but temp string is overwritten each loop...
+				getline(inputPTextFile, tempString);  //each line is written to a temp string...
+				fileString += tempString;  //temp string is added onto another string variable...
+				fileString += "\n";
+			}
+		}
+		cout << endl << endl << fileString << endl << endl;
+		inputPTextFile.close();
+
+		//argument 2...
+		inputEncKeyFile.open(argv[2]);  //open encryption key file...
+		if (!inputEncKeyFile.is_open())
+		{
+			cout << "ERROR - could not open file..." << endl << endl;
+		}
+		else
+		{
+			while (inputEncKeyFile.good())
+			{
+				getline(inputEncKeyFile, tempString2);
+				fileString2 += tempString2;
+				fileString2 += "\n";
+			}
+		}
+		cout << endl << endl << fileString2 << endl << endl;
+		inputEncKeyFile.close();
+	}
+	else
+	{
+		cout << "ERROR - not enough arguments..." << endl << endl;
+	}
+
+	return 0;
+}
